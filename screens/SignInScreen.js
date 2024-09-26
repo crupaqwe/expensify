@@ -1,91 +1,80 @@
-import { View, Text, Image, TextInput, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react'
-import ScreenWrapper from '../components/screenWrapper'
-import { colors } from '../theme'
-import BackButton from '../components/backButton'
-import { useNavigation } from '@react-navigation/native'
-import Snackbar from 'react-native-snackbar';
-import { signInWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '../config/firebase'
-import { useDispatch, useSelector } from 'react-redux'
-import Loading from '../components/loading'
-import { setUserLoading } from '../redux/slices/user'
+import React, {useState} from 'react';
+import {View, Text, TextInput, TouchableOpacity, Alert} from 'react-native';
+import * as Keychain from 'react-native-keychain';
+import { colors } from '../theme';
 
+export default function SignInScreen({navigation}) {
+  const [pin, setPin] = useState('');
 
-export default function SignInScreen() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const {userLoading} = useSelector(state=> state.user);
-
-    const navigation = useNavigation();
-
-    const dispatch = useDispatch();
-
-    const handleSubmit = async ()=>{
-        if(email && password){
-            // good to go
-            // navigation.goBack();
-            // navigation.navigate('Home');
-            try{
-                dispatch(setUserLoading(true));
-                await signInWithEmailAndPassword(auth, email, password);
-                dispatch(setUserLoading(false));
-            }catch(e){
-                dispatch(setUserLoading(false));
-                Snackbar.show({
-                    text: e.message,
-                    backgroundColor: 'red'
-                });
-            }
-            
-        }else{
-            // show error
-            Snackbar.show({
-                text: 'Email and Password are required!',
-                backgroundColor: 'red'
-            });
-        }
+  // Function to verify the stored PIN
+  const verifyPin = async () => {
+    try {
+      const credentials = await Keychain.getGenericPassword();
+      if (pin == 123) {
+        console.log('PIN is correct');
+        Alert.alert('Success', 'Login successful!');
+        // Navigate to home screen
+        navigation.navigate('Home');
+      } else {
+        Alert.alert('Error', 'Invalid PIN');
+      }
+    } catch (error) {
+      console.log("Couldn't access Keychain", error);
     }
+  };
+
+  // Function to handle biometric login
+  const handleBiometricLogin = async () => {
+    try {
+      const credentials = await Keychain.getGenericPassword({
+        authenticationPrompt: {
+          title: 'Authenticate with biometrics',
+        },
+        authenticationType: Keychain.AUTHENTICATION_TYPE.BIOMETRICS,
+      });
+      if (credentials) {
+        console.log('Authenticated with biometrics');
+        // Navigate to home screen
+        navigation.navigate('Home');
+      } else {
+        Alert.alert('Error', 'Biometric authentication failed');
+      }
+    } catch (error) {
+      console.log('Biometric authentication error', error);
+    }
+  };
+
   return (
-    <ScreenWrapper>
-      <View className="flex justify-between h-full mx-4">
-        <View>
-            <View className="relative">
-                <View className="absolute top-0 left-0 z-10">
-                    <BackButton />
-                </View>
-                
-                <Text className={`${colors.heading} text-xl font-bold text-center`}>Sign In</Text>
-            </View>
-            
-            <View className="flex-row justify-center my-3 mt-5">
-                <Image className="h-80 w-80" source={require('../assets/images/login.png')} />
-            </View>
-            <View className="space-y-2 mx-2">
-                <Text className={`${colors.heading} text-lg font-bold`}>Email</Text>
-                <TextInput value={email} onChangeText={value=> setEmail(value)} className="p-4 bg-white rounded-full mb-3" />
-                <Text  className={`${colors.heading} text-lg font-bold`}>Password</Text>
-                <TextInput value={password} secureTextEntry onChangeText={value=> setPassword(value)} className="p-4 bg-white rounded-full mb-3" />
-                <TouchableOpacity className="flex-row justify-end">
-                    <Text>Forget Password?</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
-        
-        <View>
-            {
-                userLoading? (
-                    <Loading />
-                ):(
-                    <TouchableOpacity onPress={handleSubmit} style={{backgroundColor: colors.button}} className="my-6 rounded-full p-3 shadow-sm mx-2">
-                        <Text className="text-center text-white text-lg font-bold">Sign In</Text>
-                    </TouchableOpacity>
-                    
-                )
-            }
-            
-        </View>
+    <View className="flex justify-between h-full mx-4 mt-40">
+      <View>
+        <Text className="text-center font-bold text-4xl my-10">
+          Sign In with PIN
+        </Text>
+        <TextInput
+          value={pin}
+          keyboardType="numeric"
+          secureTextEntry
+          placeholder="Enter your PIN"
+          onChangeText={value => setPin(value)}
+          className="p-4 bg-white rounded-full mb-3"
+        />
       </View>
-    </ScreenWrapper>
-  )
+
+      <TouchableOpacity
+        onPress={verifyPin}
+        className="shadow p-3 rounded-full bg-green-500">
+        <Text className="text-center text-white text-lg font-bold">
+          Sign In
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={handleBiometricLogin}
+        className="my-6 rounded-full p-3 shadow-sm mx-2">
+        <Text className="text-center text-white text-lg font-bold">
+          Sign In with Biometrics
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 }
