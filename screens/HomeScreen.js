@@ -6,6 +6,17 @@ import randomImage from '../assets/images/randomImage';
 import EmptyList from '../components/emptyList';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { BarChart } from 'react-native-gifted-charts';
+
+
+const chartData = [
+    { value: 150, label: 'Food' },
+    { value: 80, label: 'Car' },
+    { value: 200, label: 'Rent' },
+    { value: 50, label: 'Phone' },
+    { value: 100, label: 'Utilities' },
+];
+
 
 const items = [
     {
@@ -89,7 +100,7 @@ export default function HomeScreen() {
     return (
         <ScreenWrapper className="flex-1">
             <View className="flex-row justify-between items-center p-4">
-                <TouchableOpacity onPress={openMenu} className="p-2 px-3 bg-white border border-gray-200 rounded-full"> 
+                <TouchableOpacity onPress={openMenu} className="p-2 px-3 bg-white border border-gray-200 rounded-full">
                     <Text className={colors.heading}>Menu</Text>
                 </TouchableOpacity>
                 <Text className={`${colors.heading} font-bold text-3xl shadow-sm`}>CoinDaddy</Text>
@@ -97,9 +108,24 @@ export default function HomeScreen() {
                     <Text className={colors.heading}>Logout</Text>
                 </TouchableOpacity>
             </View>
-            <View className="flex-row justify-center items-center bg-blue-200 rounded-xl mx-4 mb-4">
-                <Image source={require('../assets/images/banner.png')} className="w-60 h-60" />
+            <View className="bg-stone-200 rounded-xl mx-4 mb-4 p-4">
+                <BarChart
+                    data={chartData}
+                    width={300}
+                    height={200}
+                    barWidth={30}
+                    barBorderRadius={5}
+                    frontColor="#79ada0"
+                    yAxisLabel="$"
+                    noOfSections={4}
+                    yAxisThickness={0}
+                    xAxisLabelTextStyle={{ color: 'black', fontSize: 12 }}
+                    yAxisTextStyle={{ color: 'black', fontSize: 12 }}
+                    hideRules
+                    showValuesOnTopOfBars
+                />
             </View>
+
             <View className="px-4 space-y-3">
                 <View className="flex-row justify-between items-center mt-3">
                     <Text className={`${colors.heading} font-bold text-xl`}>Recent Transactions</Text>
@@ -121,7 +147,7 @@ export default function HomeScreen() {
                             return (
                                 <TouchableOpacity onPress={() => navigation.navigate('Transactions', { ...item })} className="bg-white p-3 rounded-2xl mb-3 shadow-sm">
                                     <View className="flex-row left">
-                                        <Image source={randomImage()} className="w-10 h-10 mb-2 mr-5" />
+                                        <Image source={randomImage()} className="w-10 h-10 mb-2 mr-3" />
                                         <Text className={`${colors.heading} font-bold mt-3`}>{item.place}</Text>
 
                                     </View>
